@@ -2,6 +2,8 @@
 
 ## Inference Sample
 
+https://user-images.githubusercontent.com/3495355/150677531-13f2037d-8673-4e34-8769-0da1784c2fe7.mp4
+
 This model predicts the punctuation of English, Italian, French and German texts.
  *Please note that the Europarl Dataset consists of political speeches. Therefore the model might perform differently on texts from other domains.*
 
@@ -111,3 +113,6 @@ en+de+fr+it
   url       = {http://ceur-ws.org/Vol-2957/sepp_paper4.pdf}
 }
 ```
+
+
+
