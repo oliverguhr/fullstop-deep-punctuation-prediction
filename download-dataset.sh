@@ -1,0 +1,2 @@
+wget -O ./data/sepp_nlg_2021_train_dev_data_v5.zip https://drive.switch.ch/index.php/s/g3fMhMZU2uo32mf/download?files=sepp_nlg_2021_train_dev_data_v5.zip
+wget -O ./data/sepp_nlg_2021_test_data_unlabeled_v5.zip https://drive.switch.ch/index.php/s/g3fMhMZU2uo32mf/download?files=sepp_nlg_2021_test_data_unlabeled_v5.zip

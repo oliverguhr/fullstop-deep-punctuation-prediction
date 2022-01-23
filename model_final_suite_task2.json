@@ -1,0 +1,71 @@
+{   "later":[
+    {
+        "id":16,
+        "task":2,
+        "model":"roberta-large",
+        "languages":["en"],
+        "augmentation":[""],
+        "data_percentage":1,
+        "use_token_type_ids":false,
+        "tokenizer_config":{"strip_accent":false, "add_prefix_space":true},
+        "opimizer_config":{"adafactor":true, "num_train_epochs":2}
+    },        
+    {
+        "id":19,
+        "task":2,
+        "model":"xlm-roberta-large",
+        "languages":["en"],
+        "augmentation":[""],
+        "data_percentage":1,
+        "use_token_type_ids":false,
+        "tokenizer_config":{"strip_accent":false, "add_prefix_space":true},
+        "opimizer_config":{"adafactor":true, "num_train_epochs":2}
+    },        
+    {
+        "id":8,
+        "task":2,
+        "model":"german-nlp-group/electra-base-german-uncased",
+        "languages":["de"],
+        "augmentation":[""],
+        "data_percentage":1,
+        "use_token_type_ids":true,
+        "tokenizer_config":{"strip_accent":false},
+        "opimizer_config":{"adafactor":true, "num_train_epochs":2}
+    },                
+    {
+        "id":18,
+        "task":2,
+        "model":"camembert/camembert-large",
+        "languages":["fr"],
+        "augmentation":[""],
+        "data_percentage":1,
+        "use_token_type_ids":false,
+        "tokenizer_config":{"strip_accent":false, "add_prefix_space":true},
+        "opimizer_config":{"adafactor":true, "num_train_epochs":2}
+    },                                  
+    {
+        "id":14,
+        "task":2,
+        "model":"dbmdz/bert-base-italian-xxl-uncased",
+        "languages":["it"],
+        "augmentation":[""],
+        "data_percentage":1,
+        "use_token_type_ids":true,
+        "tokenizer_config":{"strip_accent":true},
+        "opimizer_config":{"adafactor":true, "num_train_epochs":2}
+    }
+], 
+    "tests":[   
+        {
+            "id":22,
+            "task":2,
+            "model":"xlm-roberta-large",
+            "languages":["en","de","fr","it"],
+            "augmentation":[""],
+            "data_percentage":1,
+            "use_token_type_ids":false,
+            "tokenizer_config":{"strip_accent":false, "add_prefix_space":true},
+            "opimizer_config":{"adafactor":true, "num_train_epochs":2}
+        }    
+    ]
+}
