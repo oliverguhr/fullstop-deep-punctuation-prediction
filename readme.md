@@ -10,16 +10,50 @@ Italian texts and an average F1-score of 0.78 for punctuation mark prediction.
 
 ## How to use:
 
-This model predicts the punctuation of English, Italian, French and German texts.
- *Please note that the Europarl Dataset consists of political speeches. Therefore the model might perform differently on texts from other domains.*
+If you like to use the model on your own texts, you can [use our python package](https://github.com/oliverguhr/deepmultilingualpunctuation/).
 
-The model restores the following punctuation markers: **"." "," "?" "-" ":"**
+## Install 
 
-```python
-from transformers import pipeline
-pipe = pipeline("token-classification", "oliverguhr/fullstop-punctuation-multilang-large")
-pipe(["My name is Clara and I live in Berkeley California"])
+To get started install the package from [pypi](https://pypi.org/project/deepmultilingualpunctuation/):
+
+```bash
+pip install deepmultilingualpunctuation
 ```
+
+## Usage
+The ```PunctuationModel``` class an process texts of any length. Note that processing of very long texts can be time consuming.
+
+### Restore Punctuation
+```python
+from deepmultilingualpunctuation import PunctuationModel
+
+model = PunctuationModel()
+text = "My name is Clara and I live in Berkeley California Ist das eine Frage Frau Müller"
+result = model.restore_punctuation(text)
+print(result)
+```
+
+**output**
+> My name is Clara and I live in Berkeley, California. Ist das eine Frage, Frau Müller?
+
+
+### Predict Labels 
+```python
+from deepmultilingualpunctuation import PunctuationModel
+
+model = PunctuationModel()
+text = "My name is Clara and I live in Berkeley California Ist das eine Frage Frau Müller"
+clean_text = model.preprocess(text)
+labled_words = model.predict(clean_text)
+print(labled_words)
+```
+
+**output**
+
+> [['My', '0', 0.9999887], ['name', '0', 0.99998665], ['is', '0', 0.9998579], ['Clara', '0', 0.6752215], ['and', '0', 0.99990904], ['I', '0', 0.9999877], ['live', '0', 0.9999839], ['in', '0', 0.9999515], ['Berkeley', ',', 0.99800044], ['California', '.', 0.99534047], ['Ist', '0', 0.99998784], ['das', '0', 0.99999154], ['eine', '0', 0.9999918], ['Frage', ',', 0.99622655], ['Frau', '0', 0.9999889], ['Müller', '?', 0.99863917]]
+
+
+
 
 ## Results 
 
