@@ -95,6 +95,10 @@ https://sites.google.com/view/sentence-segmentation/
 
 https://drive.switch.ch/index.php/s/g3fMhMZU2uo32mf
 
+### Training other languages
+
+See [training other languages](./other_languages/readme.md)
+
 ## Cite us
 
 ```
