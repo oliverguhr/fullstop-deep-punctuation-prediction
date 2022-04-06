@@ -13,20 +13,7 @@ In both cases, the dataset has to be placed in the directory _data_ with the nam
 In the file _model_final_suite_task2.json_ you need to define your language and model. For Catalan language, this how it looks like:
 
 ```json
-{   "later":[
-    {
-        "id":16,
-        "task":2,
-        "model": "softcatala/julibert",
-        "languages":["ca"],
-        "augmentation":[""],
-        "data_percentage":1,
-        "use_token_type_ids":false,
-        "tokenizer_config":{"strip_accent":false, "add_prefix_space":true },
-        "opimizer_config":{"adafactor":true, "num_train_epochs":2}
-    }
-
-], 
+{   
     "tests":[   
         {
             "id":22,
