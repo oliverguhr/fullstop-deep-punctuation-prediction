@@ -79,8 +79,8 @@ pip install -r requirements.txt
 sh download-dataset.sh
 
 # training
-python model_test_suite.py -task 1 
-python model_test_suite.py -task 2
+python model_test_suite.py 1
+python model_test_suite.py 2
 
 # test
 sh predict_all_task_1_models.sh
