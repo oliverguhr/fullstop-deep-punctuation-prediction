@@ -20,6 +20,8 @@ To get started install the package from [pypi](https://pypi.org/project/deepmult
 pip install deepmultilingualpunctuation
 ```
 
+Make sure your system has `cmake` installed, it's a prerequisite.
+
 ## Usage
 The ```PunctuationModel``` class an process texts of any length. Note that processing of very long texts can be time consuming.
 
