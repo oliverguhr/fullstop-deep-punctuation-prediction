@@ -33,8 +33,8 @@ The most important fields are _languages_, where you need to define your languag
 
 ## Training
 
-Before starting the training make sure that the _model_final_suite_task2.json_ file is empty, looking like:
-
+Before starting the training make sure that the _model_final_suite_results_task2.json_ file is empty, looking like:
+This file contains the statistics and the results of the training process. 
 ```json
 
 {
