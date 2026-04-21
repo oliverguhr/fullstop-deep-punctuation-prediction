@@ -3,6 +3,7 @@ from dataset import load
 from datasets import Dataset, Features, ClassLabel, Value, concatenate_datasets
 from transformers import AutoTokenizer
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
+from transformers.trainer_utils import get_last_checkpoint
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
 import numpy as np
 import numpy.ma as ma
@@ -248,8 +249,9 @@ class ModelTrainer():
         gc.collect() 
         
         ## train model
+        output_dir = f"models/{self.run_name}/checkpoints"
         args = TrainingArguments(
-            output_dir=f"models/{self.run_name}/checkpoints",
+            output_dir=output_dir,
             run_name=self.run_name,    
             evaluation_strategy = "epoch",
             learning_rate=4e-5,
@@ -267,8 +269,8 @@ class ModelTrainer():
             logging_dir='runs/'+self.run_name,            # directory for storing logs
             logging_first_step=True,
             logging_steps=100,
-            save_steps=40000,
-            save_total_limit=5,
+            save_steps=self.opimizer_config.get("save_steps", 40000),
+            save_total_limit=self.opimizer_config.get("save_total_limit", 5),
             seed=16, 
             fp16=True   
         )
@@ -292,7 +294,12 @@ class ModelTrainer():
             print("----------hyper param search------------")
             return self.run_hyperparameter_search(trainer)
         else:
-            trainer.train(resume_from_checkpoint=False)
+            last_checkpoint = get_last_checkpoint(output_dir) if os.path.isdir(output_dir) else None
+            if last_checkpoint is not None:
+                print(f"Resuming training from checkpoint: {last_checkpoint}")
+            else:
+                print("No checkpoint found. Starting training from scratch.")
+            trainer.train(resume_from_checkpoint=last_checkpoint)
             trainer.save_model(f"models/{self.run_name}/final")
             return trainer.state.log_history
 
