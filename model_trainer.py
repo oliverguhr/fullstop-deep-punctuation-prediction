@@ -20,7 +20,7 @@ import gc
 from typing import List
 
 class ModelTrainer():
-    def __init__(self, task:int, model:str,run_name:str, data: List[str], data_percentage:float, tokenize_min_batch_size:int, stride:int, use_token_type_ids:bool, opimizer_config, tokenizer_config, languages, do_hyperparameter_search = False, resume = False, **args):
+    def __init__(self, task:int, model:str,run_name:str, data: List[str], data_percentage:float, tokenize_min_batch_size:int, stride:int, use_token_type_ids:bool, opimizer_config, tokenizer_config, languages, batches_ending_on_question_mark_percent:float = 0.0, do_hyperparameter_search = False, resume = False, **args):
         self.task = task 
         self.model_checkpoint = model
         self.run_name = run_name
@@ -29,6 +29,9 @@ class ModelTrainer():
         self.data_archive_paths = data
         self.data_factor = data_percentage # train and test on x percent of the data
         self.tokenize_min_batch_size = tokenize_min_batch_size
+        if batches_ending_on_question_mark_percent < 0 or batches_ending_on_question_mark_percent > 100:
+            raise ValueError("batches_ending_on_question_mark_percent must be between 0 and 100")
+        self.batches_ending_on_question_mark_percent = batches_ending_on_question_mark_percent
         self.stride = stride
         self.opimizer_config = opimizer_config
         self.tokenizer_config = tokenizer_config
@@ -43,6 +46,30 @@ class ModelTrainer():
             self.label_2_id = {"0":0, ".":1, ",":2, "?":3, "-":4, ":":5} 
             
         self.id_2_label = list(self.label_2_id.keys())        
+
+    def should_target_question_mark_batch(self, tokenized_batch_count, question_mark_batch_count):
+        if self.batches_ending_on_question_mark_percent <= 0:
+            return False
+
+        next_batch_count = tokenized_batch_count + 1
+        question_mark_fraction = self.batches_ending_on_question_mark_percent / 100.0
+        return (question_mark_batch_count + 1) / next_batch_count <= question_mark_fraction
+
+    def find_last_question_mark_index(self, labels):
+        min_split_index = min(int(0.75 * self.tokenize_min_batch_size), len(labels))
+        for i in range(len(labels) - 1, min_split_index - 1, -1):
+            if labels[i] == "?":
+                return i
+        return None
+
+    def trim_batch(self, batch, tokenized_batch_count, question_mark_batch_count):
+        if self.should_target_question_mark_batch(tokenized_batch_count, question_mark_batch_count):
+            question_mark_index = self.find_last_question_mark_index(batch[1])
+            if question_mark_index is not None:
+                split_at = question_mark_index + 1
+                return [batch[0][:split_at], batch[1][:split_at]], [batch[0][split_at:], batch[1][split_at:]]
+
+        return batch, [[], []]
    
     def tokenize_and_align_data(self,data,max_length=512,stride=0):
         if self.model_checkpoint == "camembert/camembert-large":
@@ -74,41 +101,55 @@ class ModelTrainer():
 
     def to_dataset(self, data, max_length=512, stride=0):
         labels, token_type_ids, input_ids, attention_masks = [],[],[],[]
-        print(f"to_dataset: data_len: {len(data)}, max_length: {max_length}, stride: {stride}, tokenize_min_batch_size:{self.tokenize_min_batch_size}")
+        print(f"to_dataset: data_len: {len(data)}, max_length: {max_length}, stride: {stride}, tokenize_min_batch_size:{self.tokenize_min_batch_size}, batches_ending_on_question_mark_percent:{self.batches_ending_on_question_mark_percent}")
 
         total_elements = sum(len(item[0]) for item in data)
         count_elements_to_clear = 0
+        tokenized_batch_count = 0
+        question_mark_batch_count = 0
          
         large = [[], []]
         for i,item in enumerate(tqdm(data)):
             count_elements_to_clear += len(item[0])
 
-            # Aggregate the data items before tokenizing in order to avoid overfitting (always predicting full-stops at the end of text)
-            if len(large[0]) == 0:
-                large = item
-            elif len(large[0]) <= self.tokenize_min_batch_size or i == len(data) - 1:
-                large[0].extend(item[0])
-                large[1].extend(item[1])
-         
-            if len(large[0]) > self.tokenize_min_batch_size or i == len(data) - 1:
-                result = self.tokenize_and_align_data(large, max_length=max_length, stride=stride)
-                large = [[], []]
+            large[0].extend(item[0])
+            large[1].extend(item[1])
+
+            # Aggregate the data items before tokenizing in order to avoid overfitting
+            # to the end labels of individual TSV files.
+            is_last_item = i == len(data) - 1
+            while len(large[0]) > self.tokenize_min_batch_size or (is_last_item and len(large[0]) > 0):
+                if len(large[0]) > self.tokenize_min_batch_size:
+                    batch, large = self.trim_batch(
+                        large,
+                        tokenized_batch_count,
+                        question_mark_batch_count
+                    )
+                else:
+                    batch, large = large, [[], []]
+
+                result = self.tokenize_and_align_data(batch, max_length=max_length, stride=stride)
+
+                labels.extend(result['labels'])
+                if self.use_token_type_ids:
+                    token_type_ids.extend(result['token_type_ids'])
+                input_ids.extend(result['input_ids'])
+                attention_masks.extend(result['attention_mask'])
+
+                tokenized_batch_count += 1
+                if batch[1] and batch[1][-1] == "?":
+                    question_mark_batch_count += 1
 
                 # Every so often free memory by setting to None the already processed elements of 'data' and forcing garbage collection
                 if count_elements_to_clear > total_elements / 10:
                     data[:i] = [None] * i 
                     gc.collect()
                     count_elements_to_clear = 0
-
-                labels += result['labels']
-                if self.use_token_type_ids:
-                    token_type_ids += result['token_type_ids']
-                input_ids += result['input_ids']
-                attention_masks += result['attention_mask']
        
         gc.collect()
 
         print(f"use_token_type_ids: {self.use_token_type_ids}")
+        print(f"tokenized_batch_count: {tokenized_batch_count}, question_mark_batch_count: {question_mark_batch_count}")
         if self.use_token_type_ids:
             return Dataset.from_dict({'labels': labels, 'token_type_ids':token_type_ids, 'input_ids':input_ids, 'attention_mask':attention_masks})
         else:
