@@ -11,8 +11,10 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='train models for SEPP-NLG 2021')
     parser.add_argument("task",help="task 1 or 2")
+    #parser.add_argument("resume", help = "resume from last saved checkpoint")
     args = parser.parse_args()    
     task = args.task
+    #resume = args.resume
 
     # read model configs
     suite_config = load_json(f'model_final_suite_task{task}.json')
@@ -20,7 +22,6 @@ if __name__ == "__main__":
 
     # invoke training
     for run_config in suite_config["tests"]:
-
         run_name = f'{run_config["model"].replace("/","-")}-{"-".join(run_config["languages"])}-{run_config["data_percentage"]}-task{run_config["task"]}'
         if "comment" in run_config:
             run_name +="-"+run_config["comment"]
@@ -32,11 +33,13 @@ if __name__ == "__main__":
             continue
         
         try:
+            #trainer = ModelTrainer(run_name=run_name, resume=resume, **run_config)  
             trainer = ModelTrainer(run_name=run_name, **run_config)  
             result = trainer.run_training()
             run_config["result"] = result    
             completed_runs["tests"][run_config["id"]] = run_config
-        except:
+        except (ValueError, OSError, MemoryError, RuntimeError) as ex:
+            print("Unexpected error: ", ex);
             print("Unexpected error:", sys.exc_info()[0])         
         
 

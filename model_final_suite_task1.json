@@ -60,13 +60,16 @@
         {
             "id":22,
             "task":1,
-            "model":"xlm-roberta-large",
-            "languages":["en","de","fr","it"],
+            "model":"xlm-roberta-base",
+            "data": ["data/sepp_nlg_2021_train_dev_data_v5.zip"], 
+            "tokenize_min_batch_size": 120000,
+            "stride": 150,
+            "languages":["en","bg","es","el"],
             "augmentation":[""],
             "data_percentage":1,
             "use_token_type_ids":false,
             "tokenizer_config":{"strip_accent":false, "add_prefix_space":true},
-            "opimizer_config":{"adafactor":true, "num_train_epochs":3}
+            "opimizer_config":{"adafactor":true, "num_train_epochs":2}
         }
     ]
 }
